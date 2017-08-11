@@ -998,4 +998,38 @@ public class ParserTest extends CSPTest {
         assertEquals(1, p.getDirectives().size());
         assertEquals(0, notices.size());
     }
+
+    @Test public void testDuplicateSourceExpressions() {
+        Policy p;
+        ArrayList<Notice> notices = new ArrayList<>();
+        p = ParserWithLocation.parse("script-src 'unsafe-inline' 'unsafe-inline'", "https://origin.com", notices);
+        assertEquals(1, p.getDirectives().size());
+        assertEquals(1, notices.size());
+        assertEquals("1:28: Source list contains duplicate source expression 'unsafe-inline'. All but the first instance will be ignored.", notices.get(0).show());
+
+        notices.clear();
+        p = ParserWithLocation.parse("script-src 'unsafe-inline' 'unsafe-inline' 'unsafe-inline'", "https://origin.com", notices);
+        assertEquals(1, p.getDirectives().size());
+        assertEquals(2, notices.size());
+        assertEquals("1:28: Source list contains duplicate source expression 'unsafe-inline'. All but the first instance will be ignored.", notices.get(0).show());
+        assertEquals("1:44: Source list contains duplicate source expression 'unsafe-inline'. All but the first instance will be ignored.", notices.get(1).show());
+
+        notices.clear();
+        p = ParserWithLocation.parse("script-src 'unsafe-inline' 'unsafe-INLINE' 'unsafe-inline';", "https://origin.com", notices);
+        assertEquals(1, p.getDirectives().size());
+        assertEquals(2, notices.size());
+        assertEquals("1:28: Source list contains duplicate source expression 'unsafe-inline'. All but the first instance will be ignored.", notices.get(0).show());
+        assertEquals("1:44: Source list contains duplicate source expression 'unsafe-inline'. All but the first instance will be ignored.", notices.get(1).show());
+
+        notices.clear();
+        p = ParserWithLocation.parse("script-src 'unsafe-inline' 'unsafe-inline'; style-src 'unsafe-inline' 'unsafe-inline';", "https://origin.com", notices);
+        assertEquals(2, p.getDirectives().size());
+        assertEquals(2, notices.size());
+        assertEquals("1:28: Source list contains duplicate source expression 'unsafe-inline'. All but the first instance will be ignored.", notices.get(0).show());
+        assertEquals("1:44: Source list contains duplicate source expression 'unsafe-inline'. All but the first instance will be ignored.", notices.get(1).show());
+        assertEquals("1:28: Source list contains duplicate source expression 'unsafe-inline'. All but the first instance will be ignored.", notices.get(2).show());
+        assertEquals("1:44: Source list contains duplicate source expression 'unsafe-inline'. All but the first instance will be ignored.", notices.get(3).show());
+
+
+    }
 }

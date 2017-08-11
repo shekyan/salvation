@@ -383,7 +383,9 @@ public class Parser {
                 } else if (se instanceof HostSource || se instanceof SchemeSource) {
                     seenStates.add(SeenStates.SEEN_HOST_OR_SCHEME_SOURCE);
                 }
-                sourceExpressions.add(se);
+                if (!sourceExpressions.add(se)) {
+                    this.warn(this.tokens[this.index - 1],"Source list contains duplicate source expression " + se.show() + ". All but the first instance will be ignored.");
+                }
             } catch (DirectiveValueParseException e) {
                 parseException = true;
             }
